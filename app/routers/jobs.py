@@ -1,17 +1,18 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 from ..schemas import Oferta, DatosOferta
-from ..services.job_analyzer import analizar_texto_oferta
+from app.services.job_analyzer import analizar_texto_con_ia
 
 router = APIRouter(prefix="/ofertas", tags=["Ofertas"])
 
 @router.post("/analizar", response_model=DatosOferta)
-def analizar_oferta(oferta: Oferta):
+async def analizar_oferta(oferta: Oferta):
     """
     Recibe texto crudo de una oferta laboral,
-    lo procesa (IA después),
+    lo procesa con la IA de Gemini,
     y devuelve los datos estructurados.
     """
-
-    resultado = analizar_texto_oferta(oferta.oferta)
-
-    return resultado
+    try:
+        resultado = await analizar_texto_con_ia(oferta) 
+        return resultado
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error en el análisis: {str(e)}")
